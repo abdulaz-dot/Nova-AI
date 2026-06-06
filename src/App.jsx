@@ -190,7 +190,7 @@ export default function NovaAI() {
         }),
       });
       const data = await res.json();
-      const reply = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || "Qidiruv natijasi topilmadi.";
+      const reply = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || data.content?.[0]?.text || "Qidiruv natijasi topilmadi.";
       const assistantMsg = { role: "assistant", content: reply, display: reply };
       const final = [...newMessages, assistantMsg];
       setMessages(final);
@@ -247,7 +247,7 @@ export default function NovaAI() {
         body: JSON.stringify(reqBody),
       });
       const data = await res.json();
-      const reply = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || "...";
+      const reply = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || data.content?.[0]?.text || JSON.stringify(data) || "...";
       const assistantMsg = { role: "assistant", content: reply, display: reply };
       const final = [...newMessages, assistantMsg];
       setMessages(final);

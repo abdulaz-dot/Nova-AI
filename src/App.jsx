@@ -178,19 +178,17 @@ export default function NovaAI() {
     setMessages(newMessages);
 
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": process.env.REACT_APP_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + process.env.REACT_APP_GROQ_API_KEY },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
+          model: "llama-3.3-70b-versatile",
           max_tokens: 2048,
-          system: SYSTEM,
-          tools: [{ type: "web_search_20250305", name: "web_search" }],
-          messages: newMessages.map(m => ({ role: m.role, content: m.content })),
+          messages: [{ role: "system", content: SYSTEM }, ...newMessages.map(m => ({ role: m.role, content: typeof m.content === "string" ? m.content : (m.content?.find?.(c => c.type === "text")?.text || "") }))],
         }),
       });
       const data = await res.json();
-      const reply = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || data.content?.[0]?.text || "Qidiruv natijasi topilmadi.";
+      const reply = data.choices?.[0]?.message?.content || "Qidiruv natijasi topilmadi.";
       const assistantMsg = { role: "assistant", content: reply, display: reply };
       const final = [...newMessages, assistantMsg];
       setMessages(final);
@@ -230,24 +228,17 @@ export default function NovaAI() {
     setImages([]);
 
     try {
-      const reqBody = {
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 2048,
-        system: SYSTEM,
-        messages: newMessages.map(m => ({ role: m.role, content: m.content })),
-      };
-      // veb qidiruv tool qo'shish
-      if (isSearch) {
-        reqBody.tools = [{ type: "web_search_20250305", name: "web_search" }];
-      }
-
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": process.env.REACT_APP_ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
-        body: JSON.stringify(reqBody),
+        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + process.env.REACT_APP_GROQ_API_KEY },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          max_tokens: 2048,
+          messages: [{ role: "system", content: SYSTEM }, ...newMessages.map(m => ({ role: m.role, content: typeof m.content === "string" ? m.content : (m.content?.find?.(c => c.type === "text")?.text || "") }))],
+        }),
       });
       const data = await res.json();
-      const reply = data.content?.filter(b => b.type === "text").map(b => b.text).join("") || data.content?.[0]?.text || JSON.stringify(data) || "...";
+      const reply = data.choices?.[0]?.message?.content || "...";
       const assistantMsg = { role: "assistant", content: reply, display: reply };
       const final = [...newMessages, assistantMsg];
       setMessages(final);
